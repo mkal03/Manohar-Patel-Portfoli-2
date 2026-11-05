@@ -256,7 +256,14 @@
   .intro-play svg{ width:42%; height:42%; margin-left:6%; fill:#181004; }
   .intro-video-btn:hover .intro-play{ transform:translate(-50%,-50%) scale(1.08); box-shadow:0 0 0 16px rgba(242,169,59,.2), 0 10px 30px rgba(0,0,0,.4); }
   .intro-video-player{ position:relative; width:100%; aspect-ratio:16/9; border-radius:20px; overflow:hidden; border:1px solid var(--border); background:#000; }
-  .intro-video-player iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+  .intro-video-player iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; opacity:0; transition:opacity .45s ease; }
+  .intro-video-player.ready iframe{ opacity:1; }
+  .intro-video-player > img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; filter:brightness(.55); }
+  .intro-loader{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.9rem; z-index:2; pointer-events:none; transition:opacity .35s ease; }
+  .intro-video-player.ready .intro-loader{ opacity:0; visibility:hidden; transition:opacity .35s ease, visibility 0s .35s; }
+  .intro-spinner{ width:clamp(46px,9vw,64px); height:clamp(46px,9vw,64px); border-radius:50%; border:4px solid rgba(255,255,255,.18); border-top-color:var(--accent); animation:introSpin .8s linear infinite; }
+  .intro-loader span{ color:#fff; font-size:.85rem; letter-spacing:.04em; opacity:.85; }
+  @keyframes introSpin{ to{ transform:rotate(360deg); } }
 
   /* ---------- profile ---------- */
   .profile-list{
@@ -1042,7 +1049,14 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&isOpen)clos
     }
     var box=document.createElement('div');
     box.className='intro-video-player';
-    box.innerHTML='<iframe src="https://www.youtube.com/embed/'+VID+'?autoplay=1&rel=0&playsinline=1" title="Introduction video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+    var th=btn.querySelector('img'), thSrc=th?th.getAttribute('src'):'';
+    box.innerHTML=(thSrc?'<img alt="" aria-hidden="true">':'')+
+      '<div class="intro-loader" role="status" aria-live="polite"><div class="intro-spinner"></div><span>Loading video…</span></div>'+
+      '<iframe src="https://www.youtube.com/embed/'+VID+'?autoplay=1&rel=0&playsinline=1" title="Introduction video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+    if(thSrc){ box.querySelector('img').src=thSrc; }
+    var fr=box.querySelector('iframe');
+    fr.addEventListener('load',function(){ setTimeout(function(){ box.classList.add('ready'); },350); });
+    setTimeout(function(){ box.classList.add('ready'); },12000);
     btn.parentNode.replaceChild(box,btn);
   });
 })();
